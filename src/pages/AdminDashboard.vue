@@ -6,6 +6,6 @@
   </template>
   
   <script setup>
-  // 实际逻辑按需扩展
+  import request from '@/utils/request'
   </script>
   

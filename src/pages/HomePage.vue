@@ -144,7 +144,7 @@ onBeforeUnmount(() => {
   transition: transform 0.2s, background-color 0.2s;
 }
 .bar-button:hover {
-  background-color: #799e7c;
+  background-color: #51578e;
   transform: scale(1.05);
 }
 
