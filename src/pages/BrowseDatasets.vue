@@ -37,7 +37,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import request from '@/utils/request'
 
 const router = useRouter()
 const datasets = ref([])
@@ -53,8 +52,17 @@ const filters = ref({
 
 const fetchDatasets = async () => {
   try {
-    const response = await request.get('/datasets/db_list', { params: filters.value })
-    datasets.value = response.data || []
+    // 组装查询参数
+    const params = new URLSearchParams()
+    for (const key in filters.value) {
+      if (filters.value[key]) {
+        params.append(key, filters.value[key])
+      }
+    }
+    const res = await fetch(`http://localhost:5000/datasets/db_list?${params.toString()}`)
+    if (!res.ok) throw new Error(`请求失败，状态码：${res.status}`)
+    const data = await res.json()
+    datasets.value = data || []
   } catch (err) {
     console.error('获取数据集失败:', err)
   }

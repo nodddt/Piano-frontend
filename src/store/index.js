@@ -3,7 +3,7 @@ import { createStore } from 'vuex';
 export default createStore({
   state: {
     token: localStorage.getItem('token') || '',
-    role: localStorage.getItem('role') || '', // 如 admin, provider, user
+    role: localStorage.getItem('role') || '', 
   },
   mutations: {
     setToken(state, token) {
