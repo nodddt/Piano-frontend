@@ -37,6 +37,7 @@
             <th>任务类型</th>
             <th>状态</th>
             <th>提交时间</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody>
@@ -48,6 +49,17 @@
             <td>{{ taskTypeLabel(task.task_type) }}</td>
             <td>{{ statusLabel(task.status) }}</td>
             <td>{{ formatDate(task.submitted_at) }}</td>
+            <td v-if="task.status === 'pending'">
+  <button @click="openReviewModal(task)">审核</button>
+</td>
+<td v-else>--</td>
+<!-- 审核弹窗组件 -->
+<ReviewModal
+  v-if="showReviewModal"
+  :task="currentTask"
+  @close="showReviewModal = false"
+  @submit="submitReview"
+/>
           </tr>
           <tr v-if="tasks.length === 0">
             <td colspan="7" class="no-data">暂无计算任务</td>
@@ -71,15 +83,54 @@
         下一页
       </button>
     </section>
+    <div class="agent-download-wrapper">
+  <button @click="downloadAgent">下载本地 Agent</button>
+</div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import request from '@/utils/request'
+import ReviewModal from '@/components/ReviewModal.vue'
 
 const token = localStorage.getItem('token')
+const showReviewModal = ref(false)
+const currentTask = ref(null)
+const showDetailModal = ref(false)
 
+const apiBase = 'http://localhost:5000'
+const taskDetail = ref(null)
+const openReviewModal = (task) => {
+  currentTask.value = task
+  showReviewModal.value = true
+}
+
+const submitReview = async ({ decision, comments }) => {
+  try {
+    const payload = {
+      task_id: currentTask.value.task_id,
+      provider_decision: decision,
+      comments: comments || ''
+    }
+
+    await request.put(
+      'http://localhost:5000/tasks/review',
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+
+    alert('审核提交成功')
+    showReviewModal.value = false
+    fetchTasks()
+  } catch (err) {
+    alert('审核提交失败')
+    console.error(err)
+  }
+}
 const filters = reactive({
   datasetName: '',
   requesterUsername: '',
@@ -159,6 +210,40 @@ const taskTypeLabel = (type) => {
     case 'aggregation': return '聚合任务'
     case 'cross_row_polynomial': return '交叉多项式任务'
     default: return type
+  }
+}
+const downloadAgent = async () => {
+  try {
+    const res = await fetch(`${apiBase}/agent/download`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (!res.ok) {
+      throw new Error('下载失败，请检查服务端状态')
+    }
+
+    const blob = await res.blob()
+    const contentDisposition = res.headers.get("Content-Disposition")
+    let filename = "agent.exe"
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?([^"]+)"?/)
+      if (match && match[1]) {
+        filename = match[1]
+      }
+    }
+
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(link.href)
+  } catch (err) {
+    alert('下载失败')
+    console.error(err)
   }
 }
 
@@ -308,4 +393,53 @@ tbody tr td {
   font-weight: 600;
   color: #3a3a3a;
 }
+.tasks-table-wrapper{
+  background-color: #6970b5;
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 8px 24px;
+  border-radius: 30px;
+  cursor: pointer;
+  user-select: none;
+  min-width: 100px;
+}
+.tasks-table-wrapper button{
+  background-color: #6970b5;
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 8px 24px;
+  border-radius: 30px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+  min-width: 100px;
+}
+.tasks-table-wrapper button:hover{
+background-color: #4f578e;
+}
+.agent-download-wrapper {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1000;
+}
+
+.agent-download-wrapper button {
+  background-color: #4f578e;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s;
+}
+
+.agent-download-wrapper button:hover {
+  background-color: #39406e;
+}
+
 </style>

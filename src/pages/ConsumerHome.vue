@@ -40,7 +40,7 @@
           <td>{{ statusLabel(task.status) }}</td>
           <td>{{ formatDate(task.submitted_at) }}</td>
           <td>
-            <button @click="showTaskDetail(task.task_id)">查看任务详情</button>
+            <button @click="showTaskDetail(task.task_id)"class="taskdetail">查看任务详情</button>
             <button 
               v-if="['pending', 'approved', 'processing'].includes(task.status)" 
               @click="cancelTask(task.task_id)"
@@ -110,6 +110,7 @@
     <div class="fixed-bottom-left">
       <button @click="goDatasets" class="btn-fixed">查看可用数据集</button>
       <button @click="goRec" class="btn-fixed">REC验证与解密</button>
+      <button @click="genKeys" class="btn-fixed">生成公私钥</button>
     </div>
   </div>
 </template>
@@ -267,6 +268,80 @@ const downloadResult = async (taskId) => {
     alert('下载结果失败')
     console.error(error)
   }
+}
+// 生成 PEM 格式
+function derToPem(derArrayBuffer, type) {
+  const base64String = window.btoa(String.fromCharCode(...new Uint8Array(derArrayBuffer)));
+  const chunks = base64String.match(/.{1,64}/g) || [];
+  return `-----BEGIN ${type}-----\n${chunks.join('\n')}\n-----END ${type}-----`;
+}
+
+const genKeys = async () => {
+  try {
+    const keyPair = await window.crypto.subtle.generateKey(
+      {
+        name: 'ECDH',
+        namedCurve: 'P-256',
+      },
+      true,
+      ['deriveKey', 'deriveBits']
+    );
+
+    // 导出公钥
+    const publicKeyDer = await window.crypto.subtle.exportKey('spki', keyPair.publicKey);
+    const publicKeyPem = derToPem(publicKeyDer, 'PUBLIC KEY');
+
+    // 导出私钥
+    const privateKeyDer = await window.crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+    const privateKeyPem = derToPem(privateKeyDer, 'PRIVATE KEY');
+    const token = localStorage.getItem('token'); // 假设你已经在登录后存了 token
+    if (!token) {
+      alert('未找到登录令牌，无法上传公钥。');
+      return;
+    }
+
+    const res = await fetch('http://localhost:5000/auth/upload-public-key', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        public_key: publicKeyBase64,
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`上传失败: ${res.status} - ${errText}`);
+    }
+    // 打印 PEM 结果（你可以选择保存或展示）
+    console.log('----- ECC 公钥 PEM -----\n', publicKeyPem);
+    console.log('----- ECC 私钥 PEM -----\n', privateKeyPem);
+
+    alert('公私钥对已成功生成，可以查看控制台输出的 PEM 格式结果');
+
+    // （可选）你也可以下载保存这些内容：
+    downloadTextFile(publicKeyPem, 'public_key.pem');
+    downloadTextFile(privateKeyPem, 'private_key.pem');
+
+  } catch (err) {
+    console.error('密钥生成失败', err);
+    alert('生成密钥对失败，请查看控制台详情');
+  }
+};
+
+// 辅助函数：下载文本为文件
+function downloadTextFile(text, filename) {
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 // 左下角按钮跳转
@@ -509,5 +584,16 @@ onMounted(fetchTasks)
 .btn-fixed:hover {
   background-color: #5259a4;
 }
+.taskdetail{
+  background-color: #6970b5;
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 8px 10px;
 
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+  min-width: 100px;
+}
 </style>
