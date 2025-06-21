@@ -64,7 +64,10 @@ export default {
     const taskTypePieChart = ref(null)
     const taskStatusBarChart = ref(null)
     const userPieChart = ref(null)
-
+    const harmoniousColors = [
+  '#6970b5', '#9ea3e2', '#b1b5f0',
+  '#FFE2E2', '#f5c2c2', '#e4d9fa', '#f4f0ff'
+]
     let datasetChartInstance = null
     let taskTypeChartInstance = null
     let taskStatusChartInstance = null
@@ -80,104 +83,110 @@ export default {
     }
 
     const createDatasetPieChart = (data) => {
-      if (datasetChartInstance) datasetChartInstance.destroy()
-      const labels = Object.keys(data.by_status)
-      const values = Object.values(data.by_status)
+  if (datasetChartInstance) datasetChartInstance.destroy()
+  const labels = Object.keys(data.by_status)
+  const values = Object.values(data.by_status)
 
-      datasetChartInstance = new Chart(datasetPieChart.value.getContext('2d'), {
-        type: 'pie',
-        data: {
-          labels,
-          datasets: [{
-            data: values,
-            backgroundColor: [
-              '#4caf50', '#f44336', '#ff9800', '#2196f3', '#9c27b0',
-            ].slice(0, labels.length),
-          }],
-        },
-        options: {
-          plugins: { legend: { position: 'right' } },
-        },
-      })
-    }
+  datasetChartInstance = new Chart(datasetPieChart.value.getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: harmoniousColors.slice(0, labels.length),
+      }],
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'right' } },
+    },
+  })
+}
+
 
     const createTaskTypePieChart = (data) => {
-      if (taskTypeChartInstance) taskTypeChartInstance.destroy()
-      const labels = Object.keys(data.by_type)
-      const values = Object.values(data.by_type)
+  if (taskTypeChartInstance) taskTypeChartInstance.destroy()
+  const labels = Object.keys(data.by_type)
+  const values = Object.values(data.by_type)
 
-      taskTypeChartInstance = new Chart(taskTypePieChart.value.getContext('2d'), {
-        type: 'pie',
-        data: {
-          labels: labels.map((t) => {
-            if (t === 'row_wise') return '行级任务'
-            if (t === 'aggregation') return '聚合任务'
-            if (t === 'cross_row_polynomial') return '跨行多项式'
-            return t
-          }),
-          datasets: [{
-            data: values,
-            backgroundColor: [
-              '#2196f3', '#ff9800', '#9c27b0',
-            ].slice(0, labels.length),
-          }],
-        },
-        options: {
-          plugins: { legend: { position: 'right' } },
-        },
-      })
-    }
+  taskTypeChartInstance = new Chart(taskTypePieChart.value.getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels: labels.map((t) => {
+        if (t === 'row_wise') return '行级任务'
+        if (t === 'aggregation') return '聚合任务'
+        if (t === 'cross_row_polynomial') return '跨行多项式'
+        return t
+      }),
+      datasets: [{
+        data: values,
+        backgroundColor: harmoniousColors.slice(0, labels.length),
+      }],
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'right' } },
+    },
+  })
+}
+
 
     const createTaskStatusBarChart = (data) => {
-      if (taskStatusChartInstance) taskStatusChartInstance.destroy()
-      const labels = Object.keys(data.by_status)
-      const values = Object.values(data.by_status)
+  if (taskStatusChartInstance) taskStatusChartInstance.destroy()
+  const labels = Object.keys(data.by_status)
+  const values = Object.values(data.by_status)
 
-      taskStatusChartInstance = new Chart(taskStatusBarChart.value.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: '任务数量',
-            data: values,
-            backgroundColor: '#4caf50',
-          }],
+  taskStatusChartInstance = new Chart(taskStatusBarChart.value.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '任务数量',
+        data: values,
+        backgroundColor: harmoniousColors[0],  // 使用主色
+      }],
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          precision: 0,
         },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true,
-              precision: 0,
-            },
-          },
-          plugins: {
-            legend: { display: false },
-          },
-        },
-      })
-    }
+      },
+      plugins: {
+        legend: { display: false },
+      },
+    },
+  })
+}
+
 
     const createUserPieChart = (data) => {
-      if (userChartInstance) userChartInstance.destroy()
-      const labels = Object.keys(data.by_role)
-      const values = Object.values(data.by_role)
+  if (userChartInstance) userChartInstance.destroy()
+  const labels = Object.keys(data.by_role)
+  const values = Object.values(data.by_role)
 
-      userChartInstance = new Chart(userPieChart.value.getContext('2d'), {
-        type: 'pie',
-        data: {
-          labels: labels.map((r) => translateRole(r)),
-          datasets: [{
-            data: values,
-            backgroundColor: [
-              '#2196f3', '#f44336', '#4caf50',
-            ].slice(0, labels.length),
-          }],
-        },
-        options: {
-          plugins: { legend: { position: 'right' } },
-        },
-      })
-    }
+  userChartInstance = new Chart(userPieChart.value.getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels: labels.map((r) => translateRole(r)),
+      datasets: [{
+        data: values,
+        backgroundColor: harmoniousColors.slice(0, labels.length),
+      }],
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'right' } },
+    },
+  })
+}
+
 
     const fetchOverview = () => {
   const token = localStorage.getItem('token') || ''
@@ -272,7 +281,12 @@ h3 {
 }
 
 .overview-dashboard canvas {
-  max-width: 350px;
-  max-height: 280px;
+  width: 350px !important;   /* 固定宽度 */
+  height: 350px !important;  /* 固定高度 */
+  max-width: none !important;  /* 取消最大宽度限制 */
+  max-height: none !important; /* 取消最大高度限制 */
+  border-radius: 12px;
+
 }
+
 </style>

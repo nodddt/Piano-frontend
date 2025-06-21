@@ -142,7 +142,7 @@ const login = async () => {
     if (role.value === 'dataset_provider') {
       router.push('/datasets/manage')
     } else {
-      router.push('/datasets')
+      router.push('/consumerhome')
     }
   } catch (err) {
     console.error('登录失败', err)

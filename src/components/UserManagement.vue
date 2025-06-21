@@ -258,126 +258,169 @@ export default {
   max-width: 1100px;
   margin: 0 auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #FFFDEC;
+  border-radius: 12px;
+
+  color: #3f4174;
 }
 
 h2 {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  font-weight: 700;
+  color: #6970b5;
 }
 
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 15px;
+  gap: 14px;
+  margin-bottom: 20px;
   align-items: center;
 }
 
 .filters input,
 .filters select {
-  padding: 6px 10px;
+  padding: 8px 12px;
   font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-width: 130px;
+  border: 1.5px solid #FFE2E2;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #5a5a8a;
+  transition: border-color 0.3s ease;
+  min-width: 140px;
+}
+
+.filters input:focus,
+.filters select:focus {
+  outline: none;
+  border-color: #6970b5;
+  box-shadow: 0 0 6px #6970b5aa;
 }
 
 .filters button {
-  padding: 6px 14px;
+  padding: 8px 20px;
   font-size: 14px;
   cursor: pointer;
-  background-color: #007acc;
-  color: white;
+  background-color: #6970b5;
+  color: #fff;
   border: none;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px #6970b580;
+  transition: background-color 0.3s ease;
 }
 
 .filters button:hover {
-  background-color: #005ea3;
+  background-color: #545da8;
 }
 
 .user-table {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 12px;
-}
-
-.user-table th,
-.user-table td {
-  border: 1px solid #ddd;
-  padding: 10px 12px;
-  font-size: 14px;
-  text-align: left;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  margin-bottom: 20px;
+  background-color: transparent;
 }
 
 .user-table th {
-  background-color: #f3f3f3;
+  background-color: transparent;
+  color: #5a5a8a;
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid #FFE2E2;
+}
+
+.user-table td {
+  background-color: #fff;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #3f4174;
+  box-shadow: 0 2px 6px #FFE2E2;
+  border-radius: 8px;
+}
+
+.user-table tr {
+  border-radius: 8px;
 }
 
 .user-table button {
-  padding: 6px 12px;
+  padding: 6px 16px;
   font-size: 13px;
   cursor: pointer;
   border: none;
-  border-radius: 3px;
-  background-color: #1890ff;
-  color: white;
-  transition: background-color 0.2s ease;
+  border-radius: 6px;
+  background-color: #FFE2E2;
+  color: #6970b5;
+  font-weight: 600;
+  box-shadow: 0 2px 8px #ffcbcb90;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .user-table button:hover {
-  background-color: #0f78d1;
+  background-color: #6970b5;
+  color: #fff;
+  box-shadow: 0 4px 12px #6970b5cc;
 }
 
 .no-data {
   text-align: center;
-  color: #666;
+  color: #a9a9c7;
   font-style: italic;
-  padding: 15px 0;
+  padding: 20px 0;
+  font-weight: 600;
 }
 
 .pagination {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   font-size: 14px;
-  margin-bottom: 15px;
+  margin-bottom: 25px;
+  color: #5a5a8a;
+  font-weight: 600;
 }
 
 .pagination button {
-  padding: 6px 12px;
+  padding: 8px 16px;
   cursor: pointer;
   border: none;
-  border-radius: 4px;
-  background-color: #007acc;
+  border-radius: 8px;
+  background-color: #6970b5;
   color: white;
-  transition: background-color 0.2s ease;
+  box-shadow: 0 3px 8px #6970b580;
+  transition: background-color 0.3s ease;
 }
 
 .pagination button:disabled {
-  background-color: #bbb;
+  background-color: #dcd6b8;
+  color: #aaa;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .pagination button:hover:not(:disabled) {
-  background-color: #005ea3;
+  background-color: #545da8;
 }
 
 /* 新增管理员按钮 */
 .btn-add-admin {
-  background-color: #28a745;
-  color: white;
+  background-color: #FFE2E2;
+  color: #6970b5;
   border: none;
-  padding: 8px 16px;
+  padding: 10px 22px;
   cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: 0 4px 10px #ffcbcb90;
   float: right;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .btn-add-admin:hover {
-  background-color: #1e7e34;
+  background-color: #6970b5;
+  color: #fff;
+  box-shadow: 0 6px 16px #6970b5cc;
 }
 
 /* 弹窗样式 */
@@ -387,7 +430,7 @@ h2 {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0,0,0,0.35);
+  background-color: rgba(105, 112, 181, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -395,65 +438,83 @@ h2 {
 }
 
 .modal {
-  background-color: white;
-  padding: 24px 28px;
-  border-radius: 8px;
-  width: 360px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  background-color: #FFFDEC;
+  padding: 28px 32px;
+  border-radius: 14px;
+  width: 380px;
+  box-shadow: 0 6px 18px rgba(105, 112, 181, 0.3);
+  color: #3f4174;
+  font-weight: 600;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .modal h3 {
   margin-top: 0;
-  margin-bottom: 18px;
-  font-size: 20px;
-  font-weight: 600;
+  margin-bottom: 22px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #6970b5;
 }
 
 .modal label {
   display: block;
-  margin-bottom: 14px;
-  font-size: 14px;
-  color: #333;
+  margin-bottom: 18px;
+  font-size: 15px;
+  color: #5a5a8a;
 }
 
 .modal input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px 14px;
   font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1.5px solid #FFE2E2;
+  border-radius: 10px;
   box-sizing: border-box;
+  background-color: #fff;
+  color: #5a5a8a;
+  transition: border-color 0.3s ease;
+}
+
+.modal input:focus {
+  outline: none;
+  border-color: #6970b5;
+  box-shadow: 0 0 8px #6970b5aa;
 }
 
 .modal-actions {
   text-align: right;
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .modal-actions button {
-  padding: 7px 16px;
-  font-size: 14px;
-  border-radius: 4px;
+  padding: 9px 20px;
+  font-size: 15px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
+  font-weight: 700;
+  transition: background-color 0.3s ease;
 }
 
 .modal-actions button[type="submit"] {
-  background-color: #007acc;
-  color: white;
-  margin-right: 10px;
-  transition: background-color 0.2s ease;
+  background-color: #6970b5;
+  color: #fff;
+  margin-right: 14px;
+  box-shadow: 0 4px 14px #6970b5cc;
 }
 
 .modal-actions button[type="submit"]:hover {
-  background-color: #005ea3;
+  background-color: #545da8;
 }
 
 .modal-actions button[type="button"] {
-  background-color: #eee;
+  background-color: #FFE2E2;
+  color: #6970b5;
+  box-shadow: 0 4px 14px #ffcbcb90;
 }
 
 .modal-actions button[type="button"]:hover {
-  background-color: #ccc;
+  background-color: #f6c7c7;
 }
+
 </style>

@@ -172,94 +172,130 @@ export default {
   max-width: 1100px;
   margin: 0 auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #FFFDEC;
+  border-radius: 12px;
+
+  color: #3f4174;
 }
 
 h2 {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  font-weight: 700;
+  color: #6970b5;
 }
 
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 15px;
+  gap: 14px;
+  margin-bottom: 20px;
   align-items: center;
 }
 
 .filters input,
 .filters select {
-  padding: 6px 10px;
+  padding: 8px 14px;
   font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  min-width: 130px;
+  border: 1.5px solid #FFE2E2;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #5a5a8a;
+  transition: border-color 0.3s ease;
+  min-width: 140px;
+}
+
+.filters input:focus,
+.filters select:focus {
+  outline: none;
+  border-color: #6970b5;
+  box-shadow: 0 0 6px #6970b5aa;
 }
 
 .filters button {
-  padding: 6px 14px;
+  padding: 8px 20px;
   font-size: 14px;
   cursor: pointer;
-  background-color: #007acc;
-  color: white;
+  background-color: #6970b5;
+  color: #fff;
   border: none;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px #6970b580;
+  transition: background-color 0.3s ease;
 }
 
 .filters button:hover {
-  background-color: #005ea3;
+  background-color: #545da8;
 }
 
 .task-table {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 12px;
-}
-
-.task-table th,
-.task-table td {
-  border: 1px solid #ddd;
-  padding: 10px 12px;
-  font-size: 14px;
-  text-align: left;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  margin-bottom: 20px;
+  background-color: transparent;
 }
 
 .task-table th {
-  background-color: #f3f3f3;
+  background-color: transparent;
+  color: #5a5a8a;
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid #FFE2E2;
+}
+
+.task-table td {
+  background-color: #fff;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #3f4174;
+  box-shadow: 0 2px 6px #FFE2E2;
+  border-radius: 8px;
+}
+
+.task-table tr {
+  border-radius: 8px;
 }
 
 .no-data {
   text-align: center;
-  color: #666;
+  color: #a9a9c7;
   font-style: italic;
-  padding: 15px 0;
+  padding: 20px 0;
+  font-weight: 600;
 }
 
 .pagination {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   font-size: 14px;
-  margin-bottom: 15px;
+  margin-bottom: 25px;
+  color: #5a5a8a;
+  font-weight: 600;
 }
 
 .pagination button {
-  padding: 6px 12px;
+  padding: 8px 16px;
   cursor: pointer;
   border: none;
-  border-radius: 4px;
-  background-color: #007acc;
+  border-radius: 8px;
+  background-color: #6970b5;
   color: white;
-  transition: background-color 0.2s ease;
+  box-shadow: 0 3px 8px #6970b580;
+  transition: background-color 0.3s ease;
 }
 
 .pagination button:disabled {
-  background-color: #bbb;
+  background-color: #dcd6b8;
+  color: #aaa;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .pagination button:hover:not(:disabled) {
-  background-color: #005ea3;
+  background-color: #545da8;
 }
+
 </style>

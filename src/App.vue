@@ -17,6 +17,7 @@ html, body, #app {
   margin: 0;
   padding: 0;
   height: 100%;
+  background-color: #FFFDEC;
 }
 
 router-view {

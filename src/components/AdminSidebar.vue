@@ -19,28 +19,39 @@ export default {
 <style>
 .sidebar {
   width: 200px;
-  background-color: #f5f5f5;
-  border-right: 1px solid #ddd;
+  background-color: #FFFDEC;
+  border-right: 1px solid #dcd6b8;
   padding: 0;
+  box-shadow: 2px 0 8px rgba(105, 112, 181, 0.1);
 }
+
 .sidebar ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
+
 .sidebar li {
-  padding: 15px 20px;
+  padding: 16px 24px;
   cursor: pointer;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #fff1f1;
   user-select: none;
-  transition: background-color 0.2s;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  color: #6970b5;
+  font-weight: 600;
+  border-radius: 0 20px 20px 0;
 }
+
 .sidebar li:hover {
-  background-color: #e0e0e0;
+  background-color: #FFE2E2;
+  color: #5a5a8a;
 }
+
 .sidebar li.active {
-  background-color: #1890ff;
-  color: white;
-  font-weight: bold;
+  background-color: #6970b5;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 4px 0 12px rgba(105, 112, 181, 0.4);
 }
+
 </style>

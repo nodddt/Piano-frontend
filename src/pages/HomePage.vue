@@ -2,7 +2,7 @@
   <div id="vanta-container" ref="vantaRef" class="vanta-bg">
     <!-- 🟡 左上角标题 -->
     <div class="title-box">
-      <h1 class="main-title">Piano隐私计算平台</h1>
+      <h1 class="main-title">隐私计算平台</h1>
       <p class="subtitle">安全、高效的多方数据协同计算平台</p>
     </div>
 
@@ -15,7 +15,6 @@
       <ul v-if="showFeatures" class="feature-list">
         <li>多方安全计算</li>
         <li>密文计算与零知识证明</li>
-        <li>大模型辅助表达式转换</li>
         <li>任务调度与全流程审计</li>
       </ul>
     </div>
@@ -23,7 +22,6 @@
     <!-- 🟢 底部横向按钮栏 -->
     <div class="bottom-bar">
       <button @click="router.push('/datasets')" class="bar-button">查看可用数据集</button>
-      <button @click="router.push('/convert-expression')" class="bar-button">表达式转换</button>
       <button @click="router.push('/login')" class="bar-button">外部登录/注册</button>
     </div>
 

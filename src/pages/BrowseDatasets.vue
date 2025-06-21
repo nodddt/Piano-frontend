@@ -52,7 +52,6 @@ const filters = ref({
 
 const fetchDatasets = async () => {
   try {
-    // 组装查询参数
     const params = new URLSearchParams()
     for (const key in filters.value) {
       if (filters.value[key]) {
@@ -62,14 +61,15 @@ const fetchDatasets = async () => {
     const res = await fetch(`http://localhost:5000/datasets/db_list?${params.toString()}`)
     if (!res.ok) throw new Error(`请求失败，状态码：${res.status}`)
     const data = await res.json()
-    datasets.value = data || []
+    datasets.value = data.results || []  // ✅ 只提取有效列表
   } catch (err) {
     console.error('获取数据集失败:', err)
   }
 }
 
+
 const goToDetail = (datasetId) => {
-  router.push({ path: '/dataset-detail', query: { dataset_id: datasetId } })
+  router.push({ name: 'DatasetDetails', params: { id: datasetId } })
 }
 
 const mapPrivacy = (level) => {
