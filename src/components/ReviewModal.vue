@@ -7,8 +7,8 @@
       <label for="decision">请选择审核结果：</label>
       <select v-model="decision" id="decision" required>
         <option disabled value="">请选择</option>
-        <option value="approved">通过</option>
-        <option value="rejected">拒绝</option>
+        <option value="approve">通过</option>
+        <option value="reject">拒绝</option>
       </select>
 
       <label for="comments">填写评价：</label>

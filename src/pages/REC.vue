@@ -73,6 +73,7 @@ const subtle = window.crypto.subtle;
 const ECC_CURVE_NAME = "P-256";
 const HKDF_INFO_STRING_FOR_KEY_A = "aes_key_for_c_csp_and_symmetric_key_encryption";
 
+
 // UI 状态
 const libraryStatusText = ref("正在加载依赖库，请稍候...");
 const libraryStatusColor = ref("black");
@@ -379,124 +380,148 @@ async function performPst13Verification(
 }
 
 // === ZIP 相关的验证逻辑 ===
-async function runVerification(zip) {
-  const getFileContent = async (filePath, type = "json") => {
-    const file = zip.file(filePath);
-    if (!file) throw new Error(`文件在ZIP包中未找到: '${filePath}'。请检查ZIP文件的目录结构是否正确。`);
-    if (type === "json") return JSON.parse(await file.async("string"));
-    if (type === "arraybuffer") return await file.async("arraybuffer");
-    return await file.async("string");
-  };
+        async function runVerification(zip) {
+            // --- MODIFICATION: 增加一个更健壮的文件读取辅助函数 ---
+            const getFileContent = async (filePath, type = 'json') => {
+                const file = zip.file(filePath);
+                if (!file) {
+                    // 提供清晰的错误信息
+                    throw new Error(`文件在ZIP包中未找到: '${filePath}'。请检查ZIP文件的目录结构是否正确。`);
+                }
+                if (type === 'json') return JSON.parse(await file.async('string'));
+                if (type === 'arraybuffer') return await file.async('arraybuffer');
+                return await file.async('string');
+            };
 
-  const commitment_pk = await getFileContent("commitment_pk.json");
-  const n_and_r_data = await getFileContent("rsa_modulus_N.json");
-  const N_public_str = n_and_r_data.N_str;
+            // 加载根目录下的通用文件
+            const commitment_pk = await getFileContent('commitment_pk.json');
+            const n_and_r_data = await getFileContent('rsa_modulus_N.json');
+            const N_public_str = n_and_r_data.N_str;
 
-  const rowFolders = new Set();
-  zip.forEach((relativePath) => {
-    if (relativePath.includes("/") && !relativePath.endsWith("/")) {
-      const folderName = relativePath.split("/")[0];
-      if (folderName.startsWith("row_")) rowFolders.add(folderName);
-    }
-  });
-  const sortedRowFolders = Array.from(rowFolders).sort((a, b) => parseInt(a.split("_")[1]) - parseInt(b.split("_")[1]));
-  if (sortedRowFolders.length === 0) throw new Error("ZIP 包中未找到任何 'row_...' 格式的子目录。");
+            const rowFolders = new Set();
+            zip.forEach((relativePath) => {
+                if (relativePath.includes('/') && !relativePath.endsWith('/')) {
+                    const folderName = relativePath.split('/')[0];
+                    if (folderName.startsWith('row_')) rowFolders.add(folderName);
+                }
+            });
+            const sortedRowFolders = Array.from(rowFolders).sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
+            if (sortedRowFolders.length === 0) throw new Error("ZIP 包中未找到任何 'row_...' 格式的子目录。");
 
-  let verificationResults = [];
-  for (const rowFolder of sortedRowFolders) {
-    try {
-      const rowNum = parseInt(rowFolder.split("_")[1]);
-      // 读取文件
-      const [C_g1_str, c_f_eval_str, pi_j_g1_str_list, W_k_g1_str, g2_neg_z_points_str_list] = await Promise.all([
-        getFileContent(`${rowFolder}/C_g1.txt`, "string"),
-        getFileContent(`${rowFolder}/c_f_eval.txt`, "string"),
-        getFileContent(`${rowFolder}/pi_j_g1_list.json`),
-        getFileContent(`${rowFolder}/W_k_g1.txt`, "string"),
-        getFileContent(`${rowFolder}/g2_neg_z_points_list.json`),
-      ]);
+            let verificationResults = [];
+            for (const rowFolder of sortedRowFolders) {
+                let status = '失败';
+                let message = '';
+                try {
+                    // Helper to get files from the specific row folder
+                    const getFileContentForRow = async (filename, type = 'json') => {
+                        const fullPath = `${rowFolder}/${filename}`;
+                        const file = zip.file(fullPath);
+                        if (!file) throw new Error(`文件在ZIP的 ${rowFolder} 目录中未找到: ${filename}`);
+                        if (type === 'json') return JSON.parse(await file.async('string'));
+                        if (type === 'arraybuffer') return await file.async('arraybuffer');
+                        return await file.async('string');
+                    };
 
-      const verified = await performPst13Verification(
-        C_g1_str.trim(),
-        c_f_eval_str.trim(),
-        N_public_str.trim(),
-        pi_j_g1_str_list,
-        W_k_g1_str.trim(),
-        g2_neg_z_points_str_list,
-        commitment_pk
-      );
+                    // Load all necessary data for verification for the current row
+                    const commitment_c = await getFileContentForRow("commitment_c.json");
+                    const proof_data = await getFileContentForRow("evaluation_proof.json");
+                    const c_f_buffer = await getFileContentForRow("result_c_f.dat", "arraybuffer");
+                    const c_f_eval_str = BigInt('0x' + arrayBufferToHexString(c_f_buffer)).toString();
 
-      verificationResults.push({
-        row: rowNum,
-        status: verified ? "通过" : "未通过",
-        message: verified ? "验证成功" : "验证失败",
-      });
-    } catch (e) {
-      verificationResults.push({
-        row: rowFolder,
-        status: "错误",
-        message: e.message,
-      });
-    }
-  }
-  return verificationResults;
-}
+                    const isVerified = await performPst13Verification(
+                        commitment_c.commitment_C_point_g1_str,
+                        c_f_eval_str,
+                        N_public_str,
+                        proof_data.witness_pi_j_points_g1_str,
+                        proof_data.witness_W_k_point_g1_str,
+                        commitment_c.g2_neg_ci_points_str,
+                        commitment_pk
+                    );
+
+                    status = isVerified ? '成功' : '失败';
+                    message = isVerified ? 'ZKP 验证通过' : 'ZKP 验证未通过';
+
+                } catch (err) {
+                    console.error(`处理 ${rowFolder} 验证时出错:`, err);
+                    message = `验证出错: ${err.message}`;
+                }
+                verificationResults.push({ row: rowFolder, status, message });
+            }
+            return verificationResults;
+        }
 
 // === 解密流程 ===
 async function runDecryption(zip, recPrivateKey) {
-  const getFileContent = async (filePath, type = "json") => {
-    const file = zip.file(filePath);
-    if (!file) throw new Error(`文件在ZIP包中未找到: '${filePath}'。请检查ZIP文件的目录结构是否正确。`);
-    if (type === "json") return JSON.parse(await file.async("string"));
-    if (type === "arraybuffer") return await file.async("arraybuffer");
-    return await file.async("string");
-  };
+            const getFile = async (filename, type='json') => {
+                 const file = zip.file(filename);
+                 if (!file) throw new Error(`公共文件在ZIP根目录未找到: ${filename}`);
+                 return type === 'json' ? JSON.parse(await file.async('string')) : await file.async(type);
+            };
 
-  const n_and_r_data = await getFileContent("rsa_modulus_N.json");
-  const N_public_str = n_and_r_data.N_str;
-  const N_bigint = BigInt(N_public_str);
+            const n_and_r_data = await getFile('rsa_modulus_N.json');
+            const r_int = BigInt('0x' + arrayBufferToHexString(base64ToArrayBuffer(n_and_r_data.uniform_r_b64)));
+            
+            const c_csp_encrypted_data = await getFile('c_csp.json');
+            const sk_f_rec_enc_data = await getFile('sk_f_rec_enc.json');
+            const senEphemeralPkB64 = c_csp_encrypted_data.sen_ephemeral_public_key_spki_b64;
 
-  const C_csp_pem_str = await getFileContent("C_csp.txt", "string");
-  const K_sk_str = await getFileContent("K_sk.txt", "string");
-  const K_spk_str = await getFileContent("K_spk.txt", "string");
+            const senEphemeralPublicKey = await importSpkiPublicKey(senEphemeralPkB64);
+            const sharedSecretBits = await deriveSharedSecret(recPrivateKey, senEphemeralPublicKey);
+            const key_A = await deriveAesKeyFromShared(sharedSecretBits);
+            const iv_for_key_b = base64ToArrayBuffer(sk_f_rec_enc_data.nonce_b64);
+            const ciphertext_for_key_b = base64ToArrayBuffer(sk_f_rec_enc_data.ciphertext_b64);
+            const decrypted_key_B_buffer = await subtle.decrypt({ name: 'AES-GCM', iv: iv_for_key_b }, key_A, ciphertext_for_key_b);
+            const key_B = await subtle.importKey('raw', decrypted_key_B_buffer, { name: 'AES-GCM' }, false, ['decrypt']);
+            
+            const csp_iv = base64ToArrayBuffer(c_csp_encrypted_data.nonce_b64);
+            const csp_ciphertext = base64ToArrayBuffer(c_csp_encrypted_data.ciphertext_b64);
+            const p0_content_str = await aesGcmDecrypt(key_B, csp_iv, csp_ciphertext);
+            const p0_bigint = BigInt(JSON.parse(p0_content_str).p0_str);
+            if (!p0_bigint) throw new Error("未能从解密的 C_CSP 内容中解析出 p0。");
+            
+            const rowFolders = new Set();
+            zip.forEach((relativePath) => {
+                if (relativePath.includes('/') && !relativePath.endsWith('/')) {
+                    const folderName = relativePath.split('/')[0];
+                    if (folderName.startsWith('row_')) rowFolders.add(folderName);
+                }
+            });
+            const sortedRowFolders = Array.from(rowFolders).sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
 
-  const K_spk = await importSpkiPublicKey(K_spk_str.trim());
+            let finalResults = [];
+            for (const rowFolder of sortedRowFolders) {
+                let result = '';
+                try {
+                    const getFileContentForRow = async (filename, type='string') => {
+                        const fullPath = `${rowFolder}/${filename}`;
+                        const file = zip.file(fullPath);
+                        if (!file) throw new Error(`文件在ZIP的 ${rowFolder} 目录中未找到: ${filename}`);
+                        return type === 'json' ? JSON.parse(await file.async('string')) : await file.async(type);
+                    };
 
-  // 先计算共享密钥
-  const sharedBits = await deriveSharedSecret(recPrivateKey, K_spk);
-  const aesKey = await deriveAesKeyFromShared(sharedBits);
+                    const metadata = await getFileContentForRow("result_metadata.json", 'json');
+                    const C_F_bigint = BigInt('0x' + arrayBufferToHexString(await getFileContentForRow("result_c_f.dat", "arraybuffer")));
+                    
+                    const degree_F_bigint = BigInt(metadata.degree_F);
+                    const r_inv_mod_p0 = modInverse(r_int, p0_bigint);
+                    const r_correction_term = powMod(r_inv_mod_p0, degree_F_bigint, p0_bigint);
+                    const final_F_scaled_bigint = (C_F_bigint * r_correction_term) % p0_bigint;
+                    
+                    const scaling_factor_S = BigInt(metadata.scaling_factor_S);
+                    const total_degree_plus_one = degree_F_bigint + 1n;
+                    const divisor = powBigInt(scaling_factor_S, total_degree_plus_one);
+                    
+                    const final_actual_value_decimal = new Decimal(final_F_scaled_bigint.toString()).dividedBy(new Decimal(divisor.toString()));
+                    result = final_actual_value_decimal.toFixed();
+                } catch(err) {
+                    result = `计算失败: ${err.message}`;
+                }
+                finalResults.push({ row: rowFolder, result: result });
+            }
+            return { p0: p0_bigint, results: finalResults };
+        }
 
-  // 解密C_csp.txt
-  // 结构：nonce(12字节) + 密文
-  const C_csp_buf = await getFileContent("C_csp.txt", "arraybuffer");
-  if (C_csp_buf.byteLength <= 12) throw new Error("C_csp.txt 内容过短，无法包含nonce和密文。");
-  const nonce = new Uint8Array(C_csp_buf.slice(0, 12));
-  const ciphertext = new Uint8Array(C_csp_buf.slice(12));
-
-  const decryptedText = await aesGcmDecrypt(aesKey, nonce, ciphertext);
-
-  // 解析解密数据内容 (格式同你的原代码)
-  // 你需要根据实际内容自己实现
-  // 这里假设 JSON 格式
-  const decryptedObj = JSON.parse(decryptedText);
-  // p0 也是字符串形式十进制数
-  const p0BigInt = BigInt(decryptedObj.p0);
-
-  // 计算解密结果 F
-  // 遍历每个 row 计算 (p0 * c) mod N
-  const results = [];
-  for (const item of decryptedObj.data) {
-    const rowNum = item.row;
-    const cStr = item.c;
-    const cBigInt = BigInt(cStr);
-    const finalRes = (p0BigInt * cBigInt) % N_bigint;
-    results.push({
-      row: rowNum,
-      result: finalRes.toString(),
-    });
-  }
-
-  return { p0: p0BigInt, results };
-}
 
 // === 事件处理 ===
 

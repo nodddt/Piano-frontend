@@ -109,26 +109,37 @@ const openReviewModal = (task) => {
 
 const submitReview = async ({ decision, comments }) => {
   try {
+    // --- 修改开始 ---
+
+    // 1. 将 task_id 单独提取出来
+    const taskId = currentTask.value.task_id;
+
+    // 2. 在 payload 中移除 task_id
     const payload = {
-      task_id: currentTask.value.task_id,
       provider_decision: decision,
       comments: comments || ''
-    }
+    };
 
     await request.put(
-      'http://localhost:5000/tasks/review',
+      'http://localhost:5000/tasks/review', // URL 保持不变
       payload,
       {
+        // 3. 使用 'params' 配置项来传递 URL 查询参数
+        params: {
+          task_id: taskId
+        },
         headers: { Authorization: `Bearer ${token}` }
       }
-    )
+    );
 
-    alert('审核提交成功')
-    showReviewModal.value = false
-    fetchTasks()
+    // --- 修改结束 ---
+
+    alert('审核提交成功');
+    showReviewModal.value = false;
+    fetchTasks();
   } catch (err) {
-    alert('审核提交失败')
-    console.error(err)
+    alert('审核提交失败');
+    console.error(err);
   }
 }
 const filters = reactive({
